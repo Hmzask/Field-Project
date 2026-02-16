@@ -1,72 +1,101 @@
 import streamlit as st
+import bcrypt
+from database import *
 from ultralytics import YOLO
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
 import torch
-import cv2
 
-
-# -----------------------
-# Page Config
-# -----------------------
-st.set_page_config(page_title="Object Detection & Captioning", layout="centered")
-
-st.title("🧠 Object Detection + Image Captioning")
-st.write("Upload an image to detect objects and generate caption.")
+init_db()
 
 # -----------------------
-# Load Models (Cached)
+# Authentication
 # -----------------------
-@st.cache_resource
-def load_models():
+
+st.sidebar.title("Login / Register")
+
+menu = st.sidebar.selectbox("Menu", ["Login", "Register"])
+
+if menu == "Register":
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+
+    if st.sidebar.button("Register"):
+        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        try:
+            add_user(username, hashed_pw)
+            st.success("Account created!")
+        except:
+            st.error("Username already exists")
+
+elif menu == "Login":
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+
+    if st.sidebar.button("Login"):
+        user = get_user(username)
+
+        if user and bcrypt.checkpw(password.encode(), user[2]):
+            st.session_state["logged_in"] = True
+            st.session_state["username"] = username
+            st.success("Logged in successfully")
+        else:
+            st.error("Invalid credentials")
+
+# -----------------------
+# Main App After Login
+# -----------------------
+
+if st.session_state.get("logged_in"):
+
+    st.title("Object Detection + Captioning")
+
     yolo_model = YOLO("yolov8n.pt")
 
     processor = BlipProcessor.from_pretrained(
         "Salesforce/blip-image-captioning-base"
     )
-
     model = BlipForConditionalGeneration.from_pretrained(
         "Salesforce/blip-image-captioning-base"
     )
 
-    return yolo_model, processor, model
+    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png"])
 
-yolo_model, processor, blip_model = load_models()
+    if uploaded_file:
+        image = Image.open(uploaded_file).convert("RGB")
+        st.image(image)
 
-device = "cpu"
-blip_model.to(device)
+        # YOLO
+        results = yolo_model(image)
+        annotated = results[0].plot()
+        st.image(annotated)
 
-# -----------------------
-# Upload Image
-# -----------------------
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+        detected_objects = []
+        for box in results[0].boxes:
+            name = yolo_model.names[int(box.cls)]
+            detected_objects.append(name)
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
+        # BLIP
+        inputs = processor(image, return_tensors="pt")
+        with torch.no_grad():
+            output = model.generate(**inputs)
 
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+        caption = processor.decode(output[0], skip_special_tokens=True)
 
-    # -----------------------
-    # YOLO Detection
-    # -----------------------
-    results = yolo_model(image)
+        st.subheader("Caption")
+        st.write(caption)
 
-    annotated_image = results[0].plot()
+        # Save to DB
+        save_result(
+            st.session_state["username"],
+            uploaded_file.name,
+            caption,
+            ", ".join(detected_objects).upper()
+        )
 
-    annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+    # Show History
+    # history = get_user_results(st.session_state["username"])
 
-    st.image(annotated_image, caption="Detected Objects", use_column_width=True)
-
-    # -----------------------
-    # BLIP Caption
-    # -----------------------
-    inputs = processor(image, return_tensors="pt").to(device)
-
-    with torch.no_grad():
-        output = blip_model.generate(**inputs, max_new_tokens=50)
-
-    caption = processor.decode(output[0], skip_special_tokens=True)
-
-    st.subheader("Caption \n")
-    st.subheader(caption)
-
+    # for record in history:
+    #     st.write("Objects:", record[2])
+    #     st.write("---")
