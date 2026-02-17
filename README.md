@@ -159,10 +159,5 @@ For questions or support, please open an issue on the GitHub repository.
 
 ---
 
-<<<<<<< HEAD
 **-----Hamza**
 
-
-
-=======
->>>>>>> c99aee0 (author name changed)
