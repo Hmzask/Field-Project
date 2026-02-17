@@ -1,30 +1,41 @@
-# Field Project - Object Detection & Image Captioning
+# Field Project
 
-## 📋 Project Description
+## Project Description
+This project is designed to provide a comprehensive field service solution that enhances operational efficiency and customer experience.
 
-Field Project is a secure web application that combines advanced AI technologies for object detection and image captioning. Users can create an account, log in, and upload images to automatically detect objects and generate descriptive captions. The application stores all results in a local SQLite database for easy access and management.
+## Technologies Used
+- **Frontend:** React.js, Redux
+- **Backend:** Node.js, Express
+- **Database:** MongoDB
+- **Other:** Docker, Jest for testing
 
-## 🚀 What Does This Project Do?
+## Features
+- User authentication
+- Real-time updates
+- Mobile-responsive design
+- Integration with third-party APIs
+- Reporting tools
 
-The application performs the following tasks:
+## Installation Instructions
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Hmzask/Field-Project.git
+   cd Field-Project
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables (create a `.env` file based on `.env.example`).
+4. Run the application:
+   ```bash
+   npm start
+   ```
 
-1. **User Authentication**: Secure user registration and login system with bcrypt password hashing
-2. **Object Detection**: Uses YOLOv8 (nano model) to detect objects in uploaded images
-3. **Image Captioning**: Generates natural language descriptions of images using Salesforce BLIP model
-4. **Data Persistence**: Saves detection results and captions to SQLite database for each user
-5. **User-Friendly Interface**: Built with Streamlit for an intuitive and interactive web experience
+## Commands to Run the Project
+- For development: `npm run dev`
+- For running tests: `npm test`
+- To build the project: `npm run build`
 
-## 🛠️ Technology Stack
-
-### Core Technologies:
-- **Python 3.x** - Primary programming language
-- **Streamlit** - Web application framework for building the UI
-- **YOLOv8** (Ultralytics) - State-of-the-art object detection model
-- **BLIP** (Salesforce) - Vision-language model for image captioning
-- **PyTorch** - Deep learning framework for running ML models
-- **Bcrypt** - Secure password hashing for authentication
-- **SQLite** - Lightweight database for storing user data and results
-- **Pillow (PIL)** - Image processing library
-- **OpenCV** - Computer vision library for image operations
-
-## 📁 Project Structure
+---
+For any issues or contribution guidelines, please refer to the CONTRIBUTING.md file in this repository.
