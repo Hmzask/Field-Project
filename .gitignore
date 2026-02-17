@@ -1,3 +1,4 @@
 ai_env/
 project/
-yolov8n.project/
+yolov8n.pt/
+app.db/
